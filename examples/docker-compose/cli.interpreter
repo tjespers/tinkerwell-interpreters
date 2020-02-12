@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+#title        :cli.interpreter
+#description  :A dynamic user-defined interpreter for tinkerwell's CLI mode
+#author       :Tim Jespers <t.jesp3rs@gmail.com>
+#date         :2020-02-13
+#version      :0.1
+#notes        :To be used in conjunction with tinkerwell-dynamic-interpreter-resolver.sh
+#==============================================================================
+
+# give us a quick variable referencing the project root
+export PROJECT_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd))"
+
+# Docker compose file containing our tinkerwell target service
+DOCKER_COMPOSE_FILE=$PROJECT_ROOT/.tinkerwell/docker-compose.yaml
+
+# Name of the docker-compose service to use
+TINKERWELL_SERVICE_NAME=tinkerwell-exec
+
+# The docker-compose execution mode to use, either run | run --rm | exec
+# Of which exec is the fastest but the compose stack has to be running for it to succeed.
+EXECUTION_MODE="run"
+
+# translate input arguments to variables
+TINKERWELL_SCRIPT=$2
+
+# Echo the contents of the tinkerwell terminal into the mounted script file
+cat $TINKERWELL_SCRIPT >$PROJECT_ROOT/.tinkerwell/tinkerscript.txt
+
+# add /usr/local/bin to path, for some reason this is missing and we need it (for docker-compose / docker)
+PATH=$PATH:/usr/local/bin
+
+# Run the actual tinkerwell command via docker-compose one-off container
+/usr/local/bin/docker-compose -f $DOCKER_COMPOSE_FILE $EXECUTION_MODE -T $TINKERWELL_SERVICE_NAME php /run/app/tinker.phar /tmp/tinkerwell-src.txt /code 'null'
+
+# Exit with exit code of tinkerwell command
+exit $?

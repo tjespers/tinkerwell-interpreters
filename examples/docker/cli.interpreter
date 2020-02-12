@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+#title        :cli.interpreter
+#description  :A dynamic user-defined interpreter for tinkerwell's CLI mode
+#author       :Tim Jespers <t.jesp3rs@gmail.com>
+#date         :2020-02-13
+#version      :0.1
+#notes        :To be used in conjunction with tinkerwell-dynamic-interpreter-resolver.sh
+#==============================================================================
+
+# give us a quick variable referencing the project root
+export PROJECT_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd))"
+
+# The docker container to execute the tinkerwell command in
+DOCKER_CONTAINER_IMAGE=php:7.4-cli-alpine
+
+# translate input arguments to variables
+TINKERWELL_SCRIPT=$2
+
+# Echo the contents of the tinkerwell terminal into the mounted script file
+cat $TINKERWELL_SCRIPT >$PROJECT_ROOT/.tinkerwell/tinkerscript.txt
+
+# Run the actual tinkerwell command via a one-off docker
+/usr/local/bin/docker run --rm \
+    -v /Applications/Tinkerwell.app/Contents/Resources/tinkerwell:/run/app:ro \
+    -v $PROJECT_ROOT/:/code:delegated \
+    -v $PROJECT_ROOT/.tinkerwell/tinkerscript.txt:/tmp/tinkerwell-src.txt \
+    -w /code \
+    $DOCKER_CONTAINER_IMAGE \
+    /run/app/tinker.phar /tmp/tinkerwell-src.txt /code null
+
+# Exit with exit code of tinkerwell command
+exit $?

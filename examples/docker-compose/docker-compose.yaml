@@ -1,0 +1,36 @@
+version: '3.7'
+
+services:
+  # Example tinkerwell service for a container that executes a single tinker call
+  tinkerwell-run:
+    image: php:7.4-cli-alpine
+    volumes:
+      # Mount the project root in a known location
+      - $PROJECT_ROOT/:/code:delegated
+      # Mount the file that will hold the contents of the tinkerwell terminal
+      - $PROJECT_ROOT/.tinkerwell/tinkerscript.txt:/tmp/tinkerwell-src.txt
+      # Binds MacOS tinkerwell app into the container
+      - /Applications/Tinkerwell.app/Contents/Resources/tinkerwell:/run/app:ro
+    working_dir: /code
+    command:
+      - /run/app/tinkerwell/tinker.phar 
+      - /tmp/tinkerwell-src.txt 
+      - /code 
+      - 'null'
+  # Example tinkerwell service for a container that keeps running
+  tinkerwell-exec:
+    image: php:7.4-cli-alpine
+    volumes:
+      # Mount the project root in a known location
+      - $PROJECT_ROOT/:/code:delegated
+      # Mount the file that will hold the contents of the tinkerwell terminal
+      - $PROJECT_ROOT/.tinkerwell/tinkerscript.txt:/tmp/tinkerwell-src.txt
+      # Binds MacOS tinkerwell app into the container
+      - /Applications/Tinkerwell.app/Contents/Resources/tinkerwell:/run/app:ro
+    working_dir: /code
+    command:
+      # This container keeps on running indefinetly
+      # this makes it a lot quicker to use for tinkerwell commands
+      - /bin/sh
+      - -c
+      - 'while :; do sleep 10; done'
