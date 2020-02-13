@@ -15,23 +15,30 @@ export PROJECT_ROOT="$(dirname $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd))"
 DOCKER_COMPOSE_FILE=$PROJECT_ROOT/.tinkerwell/docker-compose.yaml
 
 # Name of the docker-compose service to use
-TINKERWELL_SERVICE_NAME=tinkerwell-exec
+TINKERWELL_SERVICE_NAME=tinkerwell
 
-# The docker-compose execution mode to use, either run | run --rm | exec
-# Of which exec is the fastest but the compose stack has to be running for it to succeed.
+# The docker-compose execution mode to use, either <run | run --rm | exec >
+
+# run:      run a single tinkerwell operation in a new container of the configured service
+#
+# run --rm: same as run but delete the container after the command finishes
+#
+# exec:     run a single operation in the running instance of configured service, fastest option 
+#           when using exec make sure the docker-compose stack is brought up first or tinkerwells commands will fail
+
 EXECUTION_MODE="run"
 
-# translate input arguments to variables
+# translate input arguments passed by tinkerwell to variables
 TINKERWELL_SCRIPT=$2
 
-# Echo the contents of the tinkerwell terminal into the mounted script file
+# Echo the contents of the tinkerwell terminal into the mounted script file defined in our docker-compose stack
 cat $TINKERWELL_SCRIPT >$PROJECT_ROOT/.tinkerwell/tinkerscript.txt
 
-# add /usr/local/bin to path, for some reason this is missing and we need it (for docker-compose / docker)
+# add /usr/local/bin to path, for some reason this is missing and we need it (for docker-compose / docker) to be found
 PATH=$PATH:/usr/local/bin
 
 # Run the actual tinkerwell command via docker-compose one-off container
-/usr/local/bin/docker-compose -f $DOCKER_COMPOSE_FILE $EXECUTION_MODE -T $TINKERWELL_SERVICE_NAME php /run/app/tinker.phar /tmp/tinkerwell-src.txt /code 'null'
+docker-compose -f $DOCKER_COMPOSE_FILE $EXECUTION_MODE -T $TINKERWELL_SERVICE_NAME php /run/app/tinker.phar /tmp/tinkerwell-src.txt /code 'null'
 
 # Exit with exit code of tinkerwell command
 exit $?
