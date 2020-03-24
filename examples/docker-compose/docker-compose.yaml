@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   # Example tinkerwell service for a container that keeps running indefinitely
-  tinkerwell-exec:
+  tinkerwell:
     image: php:7.4-cli-alpine
     volumes:
       # Mount the project root in a known location
